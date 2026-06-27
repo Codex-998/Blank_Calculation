@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blank Size Calculator — Metal Mate</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0f1117;
+  --bg2:       #181c27;
+  --bg3:       #1e2333;
+  --border:    #2a3045;
+  --border2:   #3a4560;
+  --accent:    #4f8ef7;
+  --accent2:   #2563d8;
+  --ok:        #22c55e;
+  --warn:      #f59e0b;
+  --danger:    #ef4444;
+  --text1:     #e8ecf4;
+  --text2:     #8a93a8;
+  --text3:     #545c72;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'IBM Plex Sans Thai', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text1);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── layout ── */
+.shell {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  min-height: 100vh;
+}
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.main {
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+
+/* ── header ── */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 16px; color: #fff;
+}
+.logo-text { font-size: 13px; font-weight: 500; color: var(--text1); }
+.logo-sub  { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+/* ── type tabs ── */
+.type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.type-tab {
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.4;
+  transition: all 0.15s;
+}
+.type-tab:hover { border-color: var(--border2); color: var(--text1); }
+.type-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ── field group ── */
+.group { display: flex; flex-direction: column; gap: 6px; }
+.group-label {
+  font-size: 10px; font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label {
+  font-size: 11px; color: var(--text2);
+}
+.field input, .field select {
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text1);
+  font-family: var(--sans);
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.field select option { background: var(--bg3); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; overflow: hidden; }
+.row2 > * { min-width: 0; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; min-width: 0; overflow: hidden; }
+.row3 > * { min-width: 0; }
+
+/* ── apps script url ── */
+.url-field {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.url-field label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+.url-field input {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  width: 100%;
+}
+.url-field input:focus { outline: none; color: var(--text1); }
+
+/* ── calc button ── */
+.calc-btn {
+  width: 100%;
+  height: 44px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: auto;
+}
+.calc-btn:hover { background: var(--accent2); }
+.calc-btn:active { transform: scale(0.98); }
+.calc-btn.saving { background: var(--text3); cursor: not-allowed; }
+
+/* ── main: section title ── */
+.sec-head {
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── result cards ── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.metric {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.metric-lbl { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.metric-val { font-size: 22px; font-weight: 600; color: var(--text1); font-family: var(--mono); }
+.metric-unit { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.metric.hi  { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+.metric.hi  .metric-val { color: var(--accent); }
+.metric.ok  { border-color: var(--ok); background: rgba(34,197,94,0.07); }
+.metric.ok  .metric-val { color: var(--ok); }
+.metric.warn{ border-color: var(--warn); background: rgba(245,158,11,0.07); }
+.metric.warn .metric-val { color: var(--warn); font-size: 14px; }
+
+/* ── blank chips ── */
+.chips-wrap { margin-bottom: 20px; }
+.chips-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  background: transparent;
+}
+.chip.pass { border-color: var(--border2); color: var(--text2); }
+.chip.best { background: var(--ok); border-color: var(--ok); color: #fff; font-weight: 600; }
+.chip.over { border-color: var(--border); color: var(--border); text-decoration: line-through; }
+
+/* ── formula box ── */
+.formula {
+  background: var(--bg3);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 2;
+  white-space: pre-wrap;
+  margin-bottom: 24px;
+}
+
+/* ── status toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: var(--text1);
+  display: none;
+  gap: 10px;
+  align-items: center;
+  z-index: 999;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { display: flex; }
+.toast.ok-toast  { border-color: var(--ok);  }
+.toast.err-toast { border-color: var(--danger); }
+.toast-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ok-toast  .toast-dot { background: var(--ok); }
+.err-toast .toast-dot { background: var(--danger); }
+
+/* ── placeholder ── */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--text3);
+  gap: 12px;
+  text-align: center;
+}
+.placeholder-icon { font-size: 40px; opacity: 0.3; }
+.placeholder p { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">B</div>
+      <div>
+        <div class="logo-text">Blank Calculator</div>
+        <div class="logo-sub">Metal Mate Co., Ltd.</div>
+      </div>
+    </div>
+
+    <!-- tank type -->
+    <div class="group">
+      <div class="group-label">ประเภทถัง</div>
+      <div class="type-tabs">
+        <button class="type-tab active" onclick="setType(2,this)">2-Piece<br><span style="font-size:10px;opacity:0.75">Head + Bottom</span></button>
+        <button class="type-tab" onclick="setType(3,this)">3-Piece<br><span style="font-size:10px;opacity:0.75">Head + Shell + Bottom</span></button>
+      </div>
+    </div>
+
+    <!-- cylinder info -->
+    <div class="group">
+      <div class="group-label">ข้อมูลถัง</div>
+      <div class="field">
+        <label>Cylinder Model / รุ่น (optional)</label>
+        <input type="text" id="model" placeholder="เช่น ARG-307-24L">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Outside Diameter — OD (mm)</label>
+          <input type="number" id="od" value="305" min="1">
+        </div>
+        <div class="field">
+          <label>Thickness — t (mm)</label>
+          <input type="number" id="thick" value="3.0" step="0.1" min="0.1">
+        </div>
+      </div>
+    </div>
+
+    <!-- head -->
+    <div class="group">
+      <div class="group-label">Head / Bottom</div>
+      <div class="row2">
+        <div class="field">
+          <label>Length Cup (mm)</label>
+          <input type="number" id="flange" value="228" min="0">
+        </div>
+        <div class="field">
+          <label>Jog Height (mm)</label>
+          <input type="number" id="jog" value="0" min="0">
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text3);line-height:1.6;">
+        Straight Liner = Length Cup − OD/4<br>
+        D_final = D_blank + Jog (บวกท้ายก่อนเลือก standard)
+      </div>
+    </div>
+
+    <!-- material -->
+    <div class="group">
+      <div class="group-label">Material &amp; Allowance</div>
+      <div class="type-tabs">
+        <button class="type-tab mat-tab active" id="mat-alu" onclick="setMat('alu',this)">Aluminium<br><span style="font-size:10px;opacity:0.75">×1.05 (fixed)</span></button>
+        <button class="type-tab mat-tab" id="mat-steel" onclick="setMat('steel',this)">Steel<br><span style="font-size:10px;opacity:0.75">custom</span></button>
+      </div>
+      <div id="steel-allowance" style="display:none;">
+        <div class="field">
+          <label>Steel Allowance Factor (e.g. 1.03)</label>
+          <input type="number" id="steel-factor" value="1.03" step="0.01" min="1.00" max="1.20">
+        </div>
+      </div>
+      <div id="allowance-info" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--text3);">
+        Allowance: ×1.05 (Aluminium)
+      </div>
+    </div>
+
+    <!-- shell (3-piece only) -->
+    <div class="group" id="grp-shell" style="display:none;">
+      <div class="group-label">Shell (3-Piece)</div>
+      <div class="row2">
+        <div class="field">
+          <label>Shell Length — L (mm)</label>
+          <input type="number" id="slen" value="300" min="1">
+        </div>
+        <div class="field">
+          <label>Weld Allowance (mm)</label>
+          <input type="number" id="weld" value="10" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- apps script url -->
+    <div class="group">
+      <div class="group-label">Google Sheets Log</div>
+      <div class="url-field">
+        <label>Apps Script Web App URL</label>
+        <input type="text" id="gasurl" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+    </div>
+
+    <button class="calc-btn" id="calcBtn" onclick="runCalc()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+      คำนวณ &amp; บันทึก
+    </button>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="main" id="main-panel">
+    <div class="placeholder">
+      <div class="placeholder-icon">⚙</div>
+      <p>กรอกข้อมูลทางซ้าย แล้วกด <strong>คำนวณ &amp; บันทึก</strong></p>
+      <p style="font-size:11px;color:var(--text3)">ผลลัพธ์จะแสดงที่นี่ พร้อมบันทึกลง Google Sheets อัตโนมัติ</p>
+    </div>
+  </main>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+const BLANK_SIZES = [225,375,407,445,455,475,500,510,535,550,570,600,628,680,700,730,1160];
+let tankType = 2;
+let matType  = 'alu';
+
+function setType(n, el) {
+  tankType = n;
+  document.querySelectorAll('.type-tab:not(.mat-tab)').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('grp-shell').style.display = n===3 ? '' : 'none';
+}
+
+function setMat(m, el) {
+  matType = m;
+  document.querySelectorAll('.mat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const steelDiv = document.getElementById('steel-allowance');
+  const info     = document.getElementById('allowance-info');
+  if (m === 'steel') {
+    steelDiv.style.display = '';
+    const f = parseFloat(document.getElementById('steel-factor').value) || 1.03;
+    info.textContent = 'Allowance: ×' + f + ' (Steel)';
+  } else {
+    steelDiv.style.display = 'none';
+    info.textContent = 'Allowance: ×1.05 (Aluminium)';
+  }
+}
+
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function runCalc() {
+  const OD    = v('od');
+  const t     = v('thick');
+  const h     = v('flange');
+  const jog   = v('jog');
+  const model = document.getElementById('model').value.trim();
+
+  if (!OD || !t) { showToast('กรุณากรอก OD และ Thickness', 'err'); return; }
+
+  // ── Material allowance ──
+  let allowance, allowanceLabel;
+  if (matType === 'alu') {
+    allowance = 1.05;
+    allowanceLabel = '×1.05 (Aluminium)';
+  } else {
+    allowance = parseFloat(document.getElementById('steel-factor').value) || 1.03;
+    allowanceLabel = '×' + allowance.toFixed(3) + ' (Steel)';
+  }
+
+  // ── สูตร Metal Mate (Surface Area Conservation) ──
+  const PI     = 22/7;
+  const r      = OD / 2;
+  const h_q    = OD / 4;
+  const cos30  = Math.sqrt(3) / 2;
+
+  const straight_liner = h - h_q;
+
+  const part1      = PI * 2 * r * r;
+  const part2      = PI * h_q * h_q / cos30;
+  const dish_area  = (part1 + part2) / 2;
+  const cyl_area   = PI * OD * straight_liner;
+  const total_area = cyl_area + dish_area;
+
+  const D_calc  = Math.sqrt(4 * total_area / PI);
+  const D_blank = D_calc * allowance;          // apply material allowance
+
+  // บวก Jog ก่อนเลือก standard blank
+  const D_final = D_blank + jog;
+
+  const recommended = BLANK_SIZES.find(s => s >= D_final);
+  const margin = recommended ? (recommended - D_final).toFixed(1) : null;
+
+  let shellW=null, shellL=null;
+  if (tankType===3) {
+    const Ls   = v('slen');
+    const weld = v('weld');
+    shellW = Math.PI * OD + weld;
+    shellL = Ls;
+  }
+
+  const ts = new Date().toLocaleString('th-TH');
+
+  // ── render result ──
+  const main = document.getElementById('main-panel');
+  main.innerHTML = `
+    <div class="sec-head">Head &amp; Bottom — Circular Blank</div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-lbl">Outside Diameter (OD)</div><div class="metric-val">${OD.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric"><div class="metric-lbl">Length Cup</div><div class="metric-val">${h.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric"><div class="metric-lbl">Jog Height</div><div class="metric-val">${jog.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric"><div class="metric-lbl">Straight Liner = Cup − OD/4</div><div class="metric-val">${straight_liner.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric"><div class="metric-lbl">Dish Area</div><div class="metric-val">${dish_area.toFixed(1)}</div><div class="metric-unit">mm²</div></div>
+      <div class="metric"><div class="metric-lbl">Cylinder Area</div><div class="metric-val">${cyl_area.toFixed(1)}</div><div class="metric-unit">mm²</div></div>
+      <div class="metric"><div class="metric-lbl">Total Area</div><div class="metric-val">${total_area.toFixed(1)}</div><div class="metric-unit">mm²</div></div>
+      <div class="metric"><div class="metric-lbl">D_blank (${allowanceLabel})</div><div class="metric-val">${D_blank.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric hi"><div class="metric-lbl">⌀ D_final = D_blank + Jog</div><div class="metric-val">${D_final.toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      ${recommended
+        ? `<div class="metric ok"><div class="metric-lbl">✓ Blank มาตรฐานที่แนะนำ</div><div class="metric-val">⌀ ${recommended}</div><div class="metric-unit">mm  +${margin} mm margin</div></div>`
+        : `<div class="metric warn"><div class="metric-lbl">⚠ ไม่มีขนาดมาตรฐาน</div><div class="metric-val" style="font-size:13px">ต้องสั่งพิเศษ</div><div class="metric-unit">> ⌀ 1160 mm</div></div>`
+      }
+    </div>
+
+    <div class="chips-wrap">
+      <div class="chips-label">ขนาด Blank มาตรฐานที่มี — strikethrough = เล็กเกินไป (vs D_final = ${D_final.toFixed(1)} mm)</div>
+      <div class="chips">
+        ${BLANK_SIZES.map(s => {
+          if (s === recommended) return `<span class="chip best">⌀ ${s}</span>`;
+          if (s < D_final) return `<span class="chip over">⌀ ${s}</span>`;
+          return `<span class="chip pass">⌀ ${s}</span>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="formula" id="formula-head">r = OD/2 = ${r.toFixed(2)}    h_q = OD/4 = ${h_q.toFixed(2)}    cos30° = ${cos30.toFixed(5)}
+Straight Liner = Length Cup − OD/4 = ${h} − ${h_q} = ${straight_liner.toFixed(2)} mm
+
+Part1 (spherical crown) = π × 2 × r²  = ${PI.toFixed(5)} × 2 × ${r.toFixed(2)}² = ${part1.toFixed(4)}
+Part2 (correction)      = π × (OD/4)² / cos30° = ${PI.toFixed(5)} × ${h_q.toFixed(2)}² / ${cos30.toFixed(5)} = ${part2.toFixed(4)}
+Dish Area = (Part1 + Part2) / 2 = (${part1.toFixed(2)} + ${part2.toFixed(2)}) / 2 = ${dish_area.toFixed(4)}
+
+Cylinder Area = π × OD × Straight_liner = ${PI.toFixed(5)} × ${OD} × ${straight_liner.toFixed(2)} = ${cyl_area.toFixed(4)}
+
+Total Area = Cylinder + Dish = ${cyl_area.toFixed(2)} + ${dish_area.toFixed(2)} = ${total_area.toFixed(4)} mm²
+
+D_calc  = √(4 × Total / π) = √(${(4*total_area).toFixed(2)} / ${PI.toFixed(5)}) = ${D_calc.toFixed(4)} mm
+D_blank = D_calc ${allowanceLabel} = ${D_calc.toFixed(4)} × ${allowance} = ${D_blank.toFixed(4)} mm
+D_final = D_blank + Jog = ${D_blank.toFixed(4)} + ${jog} = ${D_final.toFixed(2)} mm
+${recommended ? `→ ใช้ Blank มาตรฐาน ⌀ ${recommended} mm  (margin = +${margin} mm)` : '→ ไม่มีขนาดมาตรฐาน — ต้องสั่งพิเศษ'}</div>
+
+    ${tankType===3 ? `
+    <div class="sec-head">Shell — Rectangular Blank</div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-lbl">เส้นรอบวง (π × OD)</div><div class="metric-val">${(Math.PI*OD).toFixed(1)}</div><div class="metric-unit">mm</div></div>
+      <div class="metric hi"><div class="metric-lbl">Sheet Width (ความกว้าง)</div><div class="metric-val">${shellW.toFixed(1)}</div><div class="metric-unit">mm = π×OD + weld</div></div>
+      <div class="metric hi"><div class="metric-lbl">Sheet Length (ความยาว)</div><div class="metric-val">${shellL.toFixed(0)}</div><div class="metric-unit">mm</div></div>
+    </div>
+    <div class="formula">Sheet Width  = π × OD + weld allowance = ${(Math.PI*OD).toFixed(2)} + ${v('weld')} = ${shellW.toFixed(2)} mm
+Sheet Length = L_shell = ${shellL.toFixed(0)} mm</div>
+    ` : ''}
+
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;">คำนวณเมื่อ: ${ts}</div>
+  `;
+
+  // ── log to Sheets ──
+  const gasUrl = document.getElementById('gasurl').value.trim();
+  if (gasUrl) {
+    logToSheets(gasUrl, {
+      timestamp: ts,
+      model: model || '-',
+      tank_type: tankType === 2 ? '2-Piece' : '3-Piece',
+      head_type: '2:1 Semi-Ellipsoidal',
+      OD_mm: OD,
+      thickness_mm: t,
+      ID_mm: (OD - 2*t).toFixed(2),
+      dish_depth_mm: h_q.toFixed(2),
+      straight_flange_mm: straight_liner.toFixed(2),
+      material: matType === 'alu' ? 'Aluminium' : 'Steel',
+      allowance_factor: allowance,
+      jog_mm: jog,
+      blank_calc_mm: D_blank.toFixed(2),
+      blank_final_mm: D_final.toFixed(2),
+      blank_standard_mm: recommended || 'ต้องสั่งพิเศษ',
+      blank_margin_mm: margin || '-',
+      shell_width_mm: shellW ? shellW.toFixed(2) : '-',
+      shell_length_mm: shellL ? shellL.toFixed(0) : '-',
+      weld_allowance_mm: tankType===3 ? v('weld') : '-',
+      shell_length_input_mm: tankType===3 ? v('slen') : '-',
+    });
+  }
+}
+
+async function logToSheets(url, data) {
+  const btn = document.getElementById('calcBtn');
+  btn.classList.add('saving');
+  btn.textContent = 'กำลังบันทึก...';
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    showToast('บันทึกลง Google Sheets สำเร็จ ✓', 'ok');
+  } catch(e) {
+    showToast('บันทึกไม่สำเร็จ — ตรวจสอบ URL', 'err');
+  } finally {
+    btn.classList.remove('saving');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg> คำนวณ &amp; บันทึก`;
+  }
+}
+
+let toastTimer;
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  const msgEl = document.getElementById('toast-msg');
+  el.className = 'toast show ' + (type==='ok' ? 'ok-toast' : 'err-toast');
+  msgEl.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

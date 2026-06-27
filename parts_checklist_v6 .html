@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parts Checklist</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a1a1a;background:#f0f2f5;min-height:100vh;}
+.page{max-width:1060px;margin:20px auto;padding:0 14px 40px;}
+.status-bar{font-size:12px;padding:8px 14px;border-radius:6px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.s-loading{background:#FAEEDA;color:#633806;border:1px solid #FAC775;}
+.s-ok{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB;}
+.s-err{background:#FCEBEB;color:#501313;border:1px solid #F7C1C1;}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid #FAC775;border-top-color:#633806;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.url-bar{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);padding:10px 14px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.url-bar label{font-size:11px;font-weight:700;color:#555;white-space:nowrap;}
+.url-bar input{font-size:12px;padding:5px 8px;border:1px solid #ccc;border-radius:5px;flex:1;min-width:260px;}
+.url-bar button{font-size:12px;padding:5px 12px;background:#185FA5;color:#fff;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;}
+.url-bar button:hover{background:#0C447C;}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:visible;}
+.title-bar{background:#2C5282;color:#fff;text-align:center;font-weight:700;font-size:14px;letter-spacing:.06em;padding:9px;}
+.header-grid{display:grid;grid-template-columns:110px 1fr 120px 1fr;gap:7px 12px;padding:12px 14px;border-bottom:1px solid #e8eaf0;}
+.header-grid label{font-size:11px;font-weight:700;color:#555;align-self:center;text-transform:uppercase;letter-spacing:.04em;}
+.header-grid input,.header-grid select{font-size:12px;padding:5px 8px;border:1px solid #ccc;border-radius:5px;width:100%;}
+.header-grid input:focus,.header-grid select:focus{outline:none;border-color:#185FA5;}
+.weight-row{display:flex;gap:5px;}
+.weight-row input{width:75px!important;}
+.weight-row select{width:68px!important;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:#D6E4F7;}
+th{padding:7px 8px;font-size:11px;font-weight:700;color:#1a3a5c;border-right:1px solid #B0C8E8;text-align:left;white-space:nowrap;}
+th:last-child{border-right:none;}
+tbody tr{border-bottom:1px solid #edf0f5;}
+tbody tr:hover{background:#f7f9fd;}
+td{padding:4px 5px;vertical-align:middle;}
+td.cb{text-align:center;width:32px;}
+td.no{text-align:center;width:28px;font-size:11px;color:#888;}
+td.sec{width:110px;}
+td.desc{width:38%;overflow:visible;position:relative;}
+td.qty{width:56px;}
+td.pdf{width:82px;text-align:center;}
+td.del{width:26px;text-align:center;}
+td select{font-size:12px;padding:4px 5px;width:100%;border:1px solid #ddd;border-radius:4px;background:#fff;color:#1a1a1a;}
+td select:focus{outline:none;border-color:#185FA5;}
+td input[type=number]{font-size:12px;padding:4px 5px;width:100%;text-align:center;border:1px solid #ddd;border-radius:4px;background:#fff;}
+.pdf-btn{font-size:11px;padding:3px 8px;background:#185FA5;color:#fff;border:none;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap;}
+.pdf-btn:hover{background:#0C447C;}
+.pdf-na{font-size:11px;color:#bbb;display:block;text-align:center;}
+.del-btn{background:none;border:none;cursor:pointer;color:#C0392B;font-size:17px;padding:2px 4px;border-radius:3px;line-height:1;}
+.del-btn:hover{background:#FAECE7;}
+.toolbar{padding:10px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid #edf0f5;}
+.btn-add{font-size:12px;padding:6px 14px;background:#185FA5;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-add:hover{background:#0C447C;}
+.btn-green{font-size:12px;padding:7px 14px;background:#1D9E75;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-green:hover{background:#0F6E56;}
+.btn-outline{font-size:12px;padding:7px 12px;cursor:pointer;border:1px solid #bbb;border-radius:5px;background:#fff;color:#333;}
+.btn-outline:hover{background:#f5f5f5;}
+.btn-custom{font-size:12px;padding:6px 14px;background:#534AB7;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-custom:hover{background:#26215C;}
+
+.toast{position:fixed;bottom:22px;right:22px;padding:10px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.2);}
+.retry-btn{font-size:11px;padding:2px 9px;cursor:pointer;border:1px solid #993C1D;border-radius:4px;background:transparent;color:#993C1D;margin-left:6px;}
+
+/* ── Searchable dropdown ── */
+.sd-wrap{position:relative;width:100%;}
+.sd-display{font-size:12px;padding:4px 22px 4px 6px;width:100%;border:1px solid #ddd;border-radius:4px;background:#fff;color:#1a1a1a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:26px;display:flex;align-items:center;}
+.sd-display::after{content:'▾';position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;color:#888;pointer-events:none;}
+.sd-display.placeholder{color:#aaa;}
+.sd-dropdown{display:none;position:fixed;background:#fff;border:1px solid #185FA5;border-radius:6px;z-index:99999;box-shadow:0 6px 24px rgba(0,0,0,.18);max-height:400px;flex-direction:column;min-width:320px;}
+.sd-dropdown.open{display:flex;}
+.sd-search{padding:5px 7px;border:none;border-bottom:1px solid #eee;font-size:12px;outline:none;width:100%;flex-shrink:0;}
+.sd-list{overflow-y:auto;flex:1;}
+.sd-item{padding:6px 9px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sd-item:hover,.sd-item.active{background:#E6F1FB;color:#185FA5;}
+.sd-item.placeholder-item{color:#aaa;font-style:italic;}
+.sd-empty{padding:8px 9px;font-size:12px;color:#aaa;font-style:italic;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="url-bar">
+    <label>Apps Script URL:</label>
+    <input type="text" id="apiUrl" value="https://script.google.com/macros/s/AKfycbwYZfgX8y9gWCPQwGwJFEwl5cpM1GY5RDyTT8uiJ96vDdvvQDeb7W3cxRW5vrhulKC3HQ/exec">
+    <button onclick="loadParts()">🔄 โหลด</button>
+  </div>
+
+  <div id="statusBar" class="status-bar s-loading">
+    <span class="spin" id="spin"></span>
+    <span id="statusMsg">กำลังดึงข้อมูลจาก Google Drive…</span>
+  </div>
+
+  <div class="card">
+    <div class="title-bar">CHECKLIST</div>
+    <div class="header-grid">
+      <label>CUSTOMER</label>
+      <input type="text" id="hCustomer" placeholder="e.g. FRAME KING">
+      <label>DRAWING NO.</label>
+      <input type="text" id="hDrawing" placeholder="e.g. DM-LPG I WA2-DOT-0015">
+      <label>BOM</label>
+      <input type="text" id="hBOM" placeholder="e.g. Flame King 420# Galvanised">
+      <label>WEIGHT</label>
+      <div class="weight-row">
+        <input type="number" id="hWeight" placeholder="420" min="0">
+        <select id="hWeightUnit"><option>LBS</option><option>KG</option></select>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>✓</th><th>NO.</th><th>SECTION</th><th>PART NO.</th>
+          <th>QTY</th><th>Drawing</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="partBody"></tbody>
+    </table>
+
+    <div class="toolbar">
+      <button class="btn-add" onclick="addRow()">+ Add Part (Dropdown)</button>
+      <button class="btn-custom" onclick="addCustomRow()">✏ Add Part (พิมพ์เอง)</button>
+      <button class="btn-green" onclick="saveToSheets()">💾 Save → Google Sheets</button>
+      <button class="btn-outline" onclick="copyTSV()">📋 Copy → Paste in Sheets</button>
+      <button class="btn-outline" onclick="printChecklist()">🖨 Print / PDF</button>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SECTION_LABELS = {
+  'HEAD':      'Head',
+  'SHELL':     'Shell',
+  'SPUD':      'Spud',
+  'COLLAR':    'Collar',
+  'FOOT RING': 'Foot Ring',
+  'LID':       'Lid',
+  'LUG':       'Lug',
+  'VALVE':     'Valve',
+  'STICKER':   'Sticker',
+  'TUBE':      'Tube',
+  'STAMPING':  'Stamping',
+};
+const SECTIONS = Object.keys(SECTION_LABELS);
+let DB = {};
+let rowId = 0;
+
+function getAPI(){ return document.getElementById('apiUrl').value.trim(); }
+
+// ── LOAD ──────────────────────────────────────────────────
+async function loadParts(){
+  setStatus('loading','กำลังดึงข้อมูลจาก Google Drive…');
+  DB = {};
+  try{
+    const res = await fetch(getAPI());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    DB = data;
+    const total = SECTIONS.reduce((s,k)=>(s+(DB[k]||[]).length),0);
+    setStatus('ok',`✓ เชื่อมต่อสำเร็จ — พบ ${total} Part จาก ${SECTIONS.length} Section`);
+    document.querySelectorAll('[id^="sec_"]').forEach(sel=>{
+      const id = sel.id.replace('sec_','');
+      rebuildSearchDrop(id, sel.value, '');
+    });
+  }catch(e){
+    setStatus('err','เชื่อมต่อไม่ได้: '+e.message);
+  }
+}
+
+function setStatus(type,msg){
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar s-'+type;
+  document.getElementById('statusMsg').textContent = msg;
+  document.getElementById('spin').style.display = type==='loading'?'inline-block':'none';
+  bar.querySelectorAll('.retry-btn').forEach(b=>b.remove());
+  if(type==='err'){
+    const b=document.createElement('button');
+    b.className='retry-btn'; b.textContent='↺ ลองใหม่';
+    b.onclick=loadParts; bar.appendChild(b);
+  }
+}
+
+// ── SECTION DROPDOWN (native select) ──────────────────────
+function buildSecOpts(sel=''){
+  let h='<option value="">— เลือก Section —</option>';
+  SECTIONS.forEach(k=>{
+    h+=`<option value="${k}"${k===sel?' selected':''}>${SECTION_LABELS[k]}</option>`;
+  });
+  return h;
+}
+
+// ── SEARCHABLE PART DROPDOWN ───────────────────────────────
+function buildSearchDrop(id, section, selectedVal){
+  const parts = DB[section]||[];
+  const selectedLabel = selectedVal
+    ? (parts.find(p=>p.drw_no===selectedVal)?.drw_no || selectedVal)
+    : '';
+
+  return `<div class="sd-wrap" id="sdwrap_${id}">
+    <div class="sd-display ${selectedVal?'':'placeholder'}" id="sddisplay_${id}"
+         onclick="toggleDrop(${id})">${esc(selectedLabel)||'— เลือก DRW NO. —'}</div>
+    <input type="hidden" id="part_${id}" value="${esc(selectedVal)}">
+    <div class="sd-dropdown" id="sddrop_${id}">
+      <input class="sd-search" type="text" placeholder="🔍 พิมพ์เพื่อค้นหา…"
+             oninput="filterDrop(${id})" autocomplete="off" id="sdsearch_${id}">
+      <div class="sd-list" id="sdlist_${id}">
+        ${buildItems(id, parts, selectedVal, '')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildItems(id, parts, selectedVal, q){
+  if(!parts.length) return '<div class="sd-empty">ยังไม่มีข้อมูล</div>';
+  const filtered = q ? parts.filter(p=>p.drw_no.toLowerCase().includes(q.toLowerCase())) : parts;
+  if(!filtered.length) return '<div class="sd-empty">ไม่พบ "'+esc(q)+'"</div>';
+  let h = q ? '' : `<div class="sd-item placeholder-item" onclick="selectPart(${id},'','')">— เลือก DRW NO. —</div>`;
+  filtered.forEach(p=>{
+    const act = p.drw_no===selectedVal?' active':'';
+    h+=`<div class="sd-item${act}" onclick="selectPart(${id},'${esc(p.drw_no)}','${esc(p.pdf_link||'')}')">${esc(p.drw_no)}</div>`;
+  });
+  return h;
+}
+
+function rebuildSearchDrop(id, section, selectedVal){
+  const cell = document.getElementById('partcell_'+id);
+  if(cell) cell.innerHTML = buildSearchDrop(id, section, selectedVal);
+}
+
+function toggleDrop(id){
+  const drop = document.getElementById('sddrop_'+id);
+  const disp = document.getElementById('sddisplay_'+id);
+  const isOpen = drop.classList.contains('open');
+  document.querySelectorAll('.sd-dropdown.open').forEach(d=>d.classList.remove('open'));
+  if(!isOpen && disp){
+    const rect = disp.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const dropH = Math.min(400, spaceBelow > 200 ? spaceBelow - 16 : 200);
+    drop.style.width = Math.max(rect.width, 320) + 'px';
+    drop.style.left  = rect.left + 'px';
+    drop.style.maxHeight = dropH + 'px';
+    if(spaceBelow < 220){
+      drop.style.top    = '';
+      drop.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    } else {
+      drop.style.bottom = '';
+      drop.style.top    = (rect.bottom + 4) + 'px';
+    }
+    drop.classList.add('open');
+    const s = document.getElementById('sdsearch_'+id);
+    if(s){ s.value=''; filterDrop(id); s.focus(); }
+  }
+}
+
+function filterDrop(id){
+  const q = document.getElementById('sdsearch_'+id)?.value||'';
+  const sec = document.getElementById('sec_'+id)?.value||'';
+  const parts = DB[sec]||[];
+  const sel = document.getElementById('part_'+id)?.value||'';
+  const list = document.getElementById('sdlist_'+id);
+  if(list) list.innerHTML = buildItems(id, parts, sel, q);
+}
+
+function selectPart(id, drwNo, pdfLink){
+  document.getElementById('part_'+id).value = drwNo;
+  const disp = document.getElementById('sddisplay_'+id);
+  if(disp){
+    disp.textContent = drwNo || '— เลือก DRW NO. —';
+    disp.className = 'sd-display'+(drwNo?'':' placeholder');
+  }
+  document.getElementById('sddrop_'+id)?.classList.remove('open');
+  // update pdf button
+  const pdfcell = document.getElementById('pdfcell_'+id);
+  if(pdfcell) pdfcell.innerHTML = pdfHTML(pdfLink);
+}
+
+// close dropdowns on outside click
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.sd-wrap')){
+    document.querySelectorAll('.sd-dropdown.open').forEach(d=>d.classList.remove('open'));
+  }
+});
+
+function findPartData(section, drwNo){
+  return (DB[section]||[]).find(p=>p.drw_no===drwNo)||null;
+}
+
+// ── ADD ROW ───────────────────────────────────────────────
+function addRow(secVal='', partVal='', qty=1, chk=true, pdfVal=''){
+  rowId++;
+  const id = rowId;
+  const tr = document.createElement('tr');
+  tr.id = 'row_'+id;
+  tr.innerHTML = `
+    <td class="cb"><input type="checkbox" id="cb_${id}" ${chk?'checked':''}></td>
+    <td class="no" id="no_${id}"></td>
+    <td class="sec">
+      <select id="sec_${id}" onchange="onSecChange(${id})">${buildSecOpts(secVal)}</select>
+    </td>
+    <td class="desc" id="partcell_${id}">${buildSearchDrop(id, secVal, partVal)}</td>
+    <td class="qty"><input type="number" id="qty_${id}" value="${qty}" min="0" max="9999"></td>
+    <td class="pdf" id="pdfcell_${id}">${pdfHTML(pdfVal)}</td>
+    <td class="del"><button class="del-btn" onclick="delRow(${id})">×</button></td>
+  `;
+  document.getElementById('partBody').appendChild(tr);
+  reNum();
+}
+
+function onSecChange(id){
+  const sec = document.getElementById('sec_'+id).value;
+  rebuildSearchDrop(id, sec, '');
+  document.getElementById('pdfcell_'+id).innerHTML = pdfHTML('');
+}
+
+function pdfHTML(link){
+  return (link&&link.startsWith('http'))
+    ?`<a class="pdf-btn" href="${esc(link)}" target="_blank" rel="noopener">Drawing ↗</a>`
+    :`<span class="pdf-na">—</span>`;
+}
+
+
+// ── CUSTOM ROW (พิมพ์เอง) ─────────────────────────────────
+function addCustomRow(secVal='', partVal='', qty=1, chk=true){
+  rowId++;
+  const id = rowId;
+  const tr = document.createElement('tr');
+  tr.id = 'row_'+id;
+  tr.dataset.custom = '1';
+  let secOpts = '<option value="">— Section —</option>';
+  Object.entries(SECTION_LABELS).forEach(([k,v])=>{
+    secOpts += `<option value="${k}"${k===secVal?' selected':''}>${v}</option>`;
+  });
+  secOpts += '<option value="__other__">อื่นๆ…</option>';
+  tr.innerHTML = `
+    <td class="cb"><input type="checkbox" id="cb_${id}" ${chk?'checked':''}></td>
+    <td class="no" id="no_${id}"></td>
+    <td class="sec">
+      <select id="sec_${id}" style="border-color:#9B8FE8;background:#F3F2FE;" onchange="onCustomSecChange(${id})">${secOpts}</select>
+      <input type="text" id="sec_other_${id}" placeholder="พิมพ์ Section…" style="display:none;margin-top:3px;font-size:12px;padding:4px 6px;width:100%;border:1px solid #9B8FE8;border-radius:4px;background:#F3F2FE;">
+    </td>
+    <td class="desc">
+      <input type="text" id="part_${id}" placeholder="Part No. / DRW NO.…" value="${esc(partVal)}" style="font-size:12px;padding:4px 6px;width:100%;border:1px solid #9B8FE8;border-radius:4px;background:#F3F2FE;font-family:monospace;">
+    </td>
+    <td class="qty"><input type="number" id="qty_${id}" value="${qty}" min="0" max="9999"></td>
+    <td class="pdf"><span class="pdf-na">—</span></td>
+    <td class="del"><button class="del-btn" onclick="delRow(${id})">×</button></td>
+  `;
+  document.getElementById('partBody').appendChild(tr);
+  reNum();
+  document.getElementById('part_'+id).focus();
+}
+
+function onCustomSecChange(id){
+  const sel = document.getElementById('sec_'+id);
+  const other = document.getElementById('sec_other_'+id);
+  if(sel.value==='__other__'){ other.style.display='block'; other.focus(); }
+  else { other.style.display='none'; }
+}
+
+function delRow(id){ document.getElementById('row_'+id)?.remove(); reNum(); }
+
+function reNum(){
+  const rows = document.getElementById('partBody').rows;
+  for(let i=0;i<rows.length;i++){
+    const rid = rows[i].id.replace('row_','');
+    const el = document.getElementById('no_'+rid);
+    if(el) el.textContent = i+1;
+  }
+}
+
+// ── COLLECT ───────────────────────────────────────────────
+function collectRows(){
+  const rows = document.getElementById('partBody').rows;
+  const out = [];
+  for(let i=0;i<rows.length;i++){
+    const rid      = rows[i].id.replace('row_','');
+    const isCustom = rows[i].dataset.custom==='1';
+    let sec        = document.getElementById('sec_'+rid)?.value||'';
+    if(sec==='__other__') sec = document.getElementById('sec_other_'+rid)?.value||'';
+    const drwNo = document.getElementById('part_'+rid)?.value||'';
+    const qty   = document.getElementById('qty_'+rid)?.value||1;
+    const chk   = document.getElementById('cb_'+rid)?.checked;
+    const p     = isCustom ? null : findPartData(sec, drwNo);
+    if(drwNo) out.push({checked:chk, section:sec, drw_no:drwNo, qty, pdf_link:p?.pdf_link||'', custom:isCustom});
+  }
+  return out;
+}
+
+// ── SAVE ──────────────────────────────────────────────────
+async function saveToSheets(){
+  const rows = collectRows();
+  if(!rows.length){ toast('ไม่มี Part ในรายการ','#A32D2D'); return; }
+  const payload = {
+    customer:   document.getElementById('hCustomer').value,
+    bom:        document.getElementById('hBOM').value,
+    drawing_no: document.getElementById('hDrawing').value,
+    weight:     document.getElementById('hWeight').value+' '+document.getElementById('hWeightUnit').value,
+    rows
+  };
+  toast('กำลัง Save…','#185FA5');
+  try{
+    const res = await fetch(getAPI(),{
+      method:'POST',
+      body:JSON.stringify(payload),
+      headers:{'Content-Type':'application/json'}
+    });
+    toast('✓ บันทึกลง Google Sheets สำเร็จ','#1D9E75');
+  }catch(e){ toast('Save ไม่สำเร็จ: '+e.message,'#A32D2D'); }
+}
+
+// ── COPY TSV ──────────────────────────────────────────────
+function copyTSV(){
+  const c = document.getElementById('hCustomer').value;
+  const b = document.getElementById('hBOM').value;
+  const d = document.getElementById('hDrawing').value;
+  const w = document.getElementById('hWeight').value+' '+document.getElementById('hWeightUnit').value;
+  const hdr = `CUSTOMER\t${c}\t\tDRAWING NO.\t${d}\nBOM\t${b}\t\tWEIGHT\t${w}\n\nCHECK\tNO.\tSECTION\tDRW NO.\tQTY`;
+  const rows = document.getElementById('partBody').rows;
+  const lines = [];
+  for(let i=0;i<rows.length;i++){
+    const rid   = rows[i].id.replace('row_','');
+    const chk   = document.getElementById('cb_'+rid)?.checked?'✓':'';
+    const sec   = document.getElementById('sec_'+rid)?.value||'';
+    const drwNo = document.getElementById('part_'+rid)?.value||'';
+    const qty   = document.getElementById('qty_'+rid)?.value||'';
+    lines.push(`${chk}\t${i+1}\t${sec}\t${drwNo}\t${qty}`);
+  }
+  navigator.clipboard.writeText(hdr+'\n'+lines.join('\n'))
+    .then(()=>toast('✓ Copied! วางใน Sheets ได้เลย','#1D9E75'))
+    .catch(()=>toast('Copy ไม่ได้','#A32D2D'));
+}
+
+
+
+// ── PRINT ─────────────────────────────────────────────────
+function printChecklist(){
+  const cu = document.getElementById('hCustomer').value||'—';
+  const bo = document.getElementById('hBOM').value||'—';
+  const dw = document.getElementById('hDrawing').value||'—';
+  const wt = (document.getElementById('hWeight').value||'—')+' '+document.getElementById('hWeightUnit').value;
+  const rows = document.getElementById('partBody').rows;
+  let trs = '';
+  const drawingLinks = [];
+  for(let i=0;i<rows.length;i++){
+    const rid   = rows[i].id.replace('row_','');
+    const chk   = document.getElementById('cb_'+rid)?.checked?'☑':'☐';
+    const sec   = document.getElementById('sec_'+rid)?.value||'';
+    const drwNo = document.getElementById('part_'+rid)?.value||'';
+    const qty   = document.getElementById('qty_'+rid)?.value||'';
+    const p     = findPartData(sec, drwNo);
+    const link  = p?.pdf_link||'';
+    const linkCell = link
+      ? `<a href="${esc(link)}" style="color:#185FA5;font-size:10px;">เปิด Drawing ↗</a>`
+      : '—';
+    trs+=`<tr><td>${chk}</td><td>${i+1}</td><td>${sec}</td><td style="font-family:monospace;font-size:11px">${drwNo}</td><td>${qty}</td><td>${linkCell}</td></tr>`;
+    if(link) drawingLinks.push({no:i+1, drwNo, link});
+  }
+
+  // Drawing summary section
+  let drawingSummary = '';
+  if(drawingLinks.length){
+    drawingSummary = `
+    <div style="margin-top:24px;page-break-before:auto;">
+      <h3 style="font-size:13px;margin-bottom:8px;color:#2C5282;">Drawing Links (${drawingLinks.length} ไฟล์)</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#D6E4F7;">
+          <th style="padding:5px 8px;text-align:left;border:1px solid #B0C8E8;">NO.</th>
+          <th style="padding:5px 8px;text-align:left;border:1px solid #B0C8E8;">DRW NO.</th>
+          <th style="padding:5px 8px;text-align:left;border:1px solid #B0C8E8;">Link</th>
+        </tr></thead>
+        <tbody>
+          ${drawingLinks.map(d=>`<tr>
+            <td style="padding:4px 8px;border:1px solid #ddd;">${d.no}</td>
+            <td style="padding:4px 8px;border:1px solid #ddd;font-family:monospace;">${esc(d.drwNo)}</td>
+            <td style="padding:4px 8px;border:1px solid #ddd;"><a href="${esc(d.link)}" style="color:#185FA5;">เปิด Drawing ↗</a></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Checklist — ${cu}</title>
+  <style>
+    body{font-family:Arial;font-size:12px;margin:24px;}
+    h2{text-align:center;margin-bottom:12px;}
+    .m td{padding:3px 10px;}.lbl{font-weight:bold;width:120px;}
+    table.p{width:100%;border-collapse:collapse;margin-top:10px;}
+    table.p th{background:#2C5282;color:#fff;padding:6px 8px;font-size:11px;text-align:left;border:1px solid #1a3a5c;}
+    table.p td{border:1px solid #ccc;padding:5px 8px;}
+    table.p tr:nth-child(even){background:#f5f8ff;}
+    @media print{body{margin:8px;}a{color:#185FA5!important;}}
+  </style></head><body>
+  <h2>CHECKLIST</h2>
+  <table class="m">
+    <tr><td class="lbl">CUSTOMER</td><td>${cu}</td><td class="lbl">DRAWING NO.</td><td>${dw}</td></tr>
+    <tr><td class="lbl">BOM</td><td>${bo}</td><td class="lbl">WEIGHT</td><td>${wt}</td></tr>
+  </table>
+  <table class="p">
+    <thead><tr><th>✓</th><th>NO.</th><th>SECTION</th><th>DRW NO.</th><th>QTY</th><th>Drawing</th></tr></thead>
+    <tbody>${trs}</tbody>
+  </table>
+  ${drawingSummary}
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// ── UTIL ──────────────────────────────────────────────────
+function toast(msg,bg){
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.style.background=bg; t.style.display='block';
+  setTimeout(()=>t.style.display='none',2800);
+}
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadParts();
+</script>
+</body>
+</html>
